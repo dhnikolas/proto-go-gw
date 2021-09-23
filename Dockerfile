@@ -15,6 +15,6 @@ RUN mkdir /local \
 
 RUN go get -u google.golang.org/protobuf/cmd/protoc-gen-go && go install google.golang.org/protobuf/cmd/protoc-gen-go \
     && go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-    && go get -u github.com/gogo/protobuf/protoc-gen-gogofaster && go get -u github.com/envoyproxy/protoc-gen-validate
+    && go get -u github.com/gogo/protobuf/protoc-gen-gogofast && go get -u github.com/envoyproxy/protoc-gen-validate
 
-CMD /local/bin/protoc  -I /build *.proto --go-grpc_out=. --gogofaster_out=. --validate_out="lang=go:."
+CMD /local/bin/protoc -I ${GOPATH}/src/github.com/envoyproxy/protoc-gen-validate  -I /build *.proto --go-grpc_out=. --gogofast_out=. --validate_out="lang=go:."
