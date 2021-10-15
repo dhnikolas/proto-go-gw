@@ -25,6 +25,13 @@ RUN go mod init build && go mod edit -require github.com/grpc-ecosystem/grpc-gat
         github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
         github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 
+RUN echo $' \n\
+package swagger \n\
+import "os" \n\
+func GetAsset() func (name string) ([]byte, error)  {return Asset} \n\
+func GetAssetInfo() func(name string) (os.FileInfo, error) {return AssetInfo} \n\
+func GetAssetDir() func(name string) ([]string, error) {return AssetDir}' >> /var/wrapper.go
+
 CMD /local/bin/protoc -I ${GOPATH}/src/github.com/envoyproxy/protoc-gen-validate \
        -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway@v1.16.0/third_party/googleapis \
        -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.6.0 \
@@ -38,4 +45,5 @@ CMD /local/bin/protoc -I ${GOPATH}/src/github.com/envoyproxy/protoc-gen-validate
        -I /build *.proto --go-grpc_out=. --go_out=. --validate_out="lang=go:." \
     && cp $(find . -name "*.swagger.json") /swagger-ui/swagger.json \
     && sed -i "s|https://petstore.swagger.io/v2/swagger.json|./swagger.json|g" /swagger-ui/index.html \
-    && go-bindata -o /build/swagger/swagger.go -nomemcopy -pkg=swagger -prefix "/swagger-ui/" /swagger-ui
+    && go-bindata -o /build/swagger/swagger.go -nomemcopy -pkg=swagger -prefix "/swagger-ui/" /swagger-ui \ 
+    && cp /var/wrapper.go /build/swagger/
