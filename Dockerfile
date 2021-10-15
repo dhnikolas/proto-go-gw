@@ -25,7 +25,7 @@ RUN go mod init build && go mod edit -require github.com/grpc-ecosystem/grpc-gat
         github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
         github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 
-RUN echo $' \n\
+RUN echo ' \n\
 package swagger \n\
 import "os" \n\
 func GetAsset() func (name string) ([]byte, error)  {return Asset} \n\
