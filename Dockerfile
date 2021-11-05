@@ -10,7 +10,7 @@ ENV PB_REL="https://github.com/protocolbuffers/protobuf/releases"
 RUN mkdir /local \
     && apt-get update \
     && apt-get install zip unzip \
-    && curl -LO $PB_REL/download/v3.13.0/protoc-$PROTOC_VERSION-$PROTO_OS_VERSION.zip \
+    && curl -LO $PB_REL/download/v$PROTOC_VERSION/protoc-$PROTOC_VERSION-$PROTO_OS_VERSION.zip \
     && unzip protoc-$PROTOC_VERSION-$PROTO_OS_VERSION.zip -d /local \
     && export PATH="$PATH:/local/bin"
 
@@ -23,7 +23,8 @@ RUN go mod init build && go mod edit -require github.com/grpc-ecosystem/grpc-gat
     && go get github.com/go-bindata/go-bindata/... \
     && go install \
         github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+    && git clone https://github.com/googleapis/googleapis.git ${GOPATH}/google/googleapis
 
 RUN echo ' \n\
 package swagger \n\
@@ -35,6 +36,7 @@ func GetAssetDir() func(name string) ([]string, error) {return AssetDir}' >> /va
 CMD /local/bin/protoc -I ${GOPATH}/src/github.com/envoyproxy/protoc-gen-validate \
        -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway@v1.16.0/third_party/googleapis \
        -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.6.0 \
+       -I /${GOPATH}/google \
        --grpc-gateway_out . \
        --grpc-gateway_opt logtostderr=true \
        --grpc-gateway_opt paths=source_relative \
