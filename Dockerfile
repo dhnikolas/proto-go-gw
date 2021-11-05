@@ -45,7 +45,9 @@ CMD /local/bin/protoc -I ${GOPATH}/src/github.com/envoyproxy/protoc-gen-validate
        --openapiv2_opt allow_merge=true \
        --openapiv2_opt merge_file_name=api \
        -I /build *.proto --go-grpc_out=. --go_out=. --validate_out="lang=go:." \
-    && cp $(find . -name "*.swagger.json") /swagger-ui/swagger.json \
+    && if [ -f *.pb.gw.go ]; then \
+    cp $(find . -name "*.swagger.json") /swagger-ui/swagger.json \
     && sed -i "s|https://petstore.swagger.io/v2/swagger.json|./swagger.json|g" /swagger-ui/index.html \
     && go-bindata -o /build/swagger/swagger.go -nomemcopy -pkg=swagger -prefix "/swagger-ui/" /swagger-ui \ 
-    && cp /var/wrapper.go /build/swagger/
+    && cp /var/wrapper.go /build/swagger/; \
+    else rm -rf "api.swagger.json"; fi
