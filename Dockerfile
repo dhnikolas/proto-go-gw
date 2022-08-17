@@ -42,7 +42,7 @@ CMD /local/bin/protoc \
        --openapiv2_opt logtostderr=true \ 
        --openapiv2_opt allow_merge=true \
        --openapiv2_opt merge_file_name=api \
-       -I /build *.proto --go-grpc_out=. --go_out=. --validate_out="lang=go:." \
+       -I /build $(find /build -name "*.proto") --go-grpc_out=. --go_out=. --validate_out="lang=go:." \
     && if [ -f **/*.pb.gw.go ]; then \
     cp $(find . -name "*.swagger.json") /swagger-ui/swagger.json \
     && sed -i "s|https://petstore.swagger.io/v2/swagger.json|./swagger.json|g" /swagger-ui/index.html \
