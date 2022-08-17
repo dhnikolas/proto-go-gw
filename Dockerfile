@@ -1,4 +1,4 @@
-FROM golang:1.15
+FROM --platform=linux/amd64 golang:1.17
 
 WORKDIR /build
 COPY --from=swaggerapi/swagger-ui /usr/share/nginx/html/ /swagger-ui/
@@ -14,16 +14,15 @@ RUN mkdir /local \
     && unzip protoc-$PROTOC_VERSION-$PROTO_OS_VERSION.zip -d /local \
     && export PATH="$PATH:/local/bin"
 
-RUN go get -u google.golang.org/protobuf/cmd/protoc-gen-go && go install google.golang.org/protobuf/cmd/protoc-gen-go \
-    && go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-    && go get -u github.com/gogo/protobuf/protoc-gen-gogofast && go get -u github.com/envoyproxy/protoc-gen-validate
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.0  \
+    && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0  \
+    && go install github.com/envoyproxy/protoc-gen-validate@v0.6.7
 
-RUN go mod init build && go mod edit -require github.com/grpc-ecosystem/grpc-gateway@v1.16.0 -require github.com/grpc-ecosystem/grpc-gateway/v2@v2.6.0 \
-    && go mod tidy && mkdir http \
-    && go get github.com/go-bindata/go-bindata/... \
+RUN mkdir http \
+    && go install github.com/go-bindata/go-bindata/...@latest \
     && go install \
-        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.10.3 \
+        github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.10.3 \
     && git clone https://github.com/googleapis/googleapis.git ${GOPATH}/google/googleapis
 
 RUN echo ' \n\
@@ -33,10 +32,10 @@ func GetAsset() func (name string) ([]byte, error)  {return Asset} \n\
 func GetAssetInfo() func(name string) (os.FileInfo, error) {return AssetInfo} \n\
 func GetAssetDir() func(name string) ([]string, error) {return AssetDir}' >> /var/wrapper.go
 
-CMD /local/bin/protoc -I ${GOPATH}/src/github.com/envoyproxy/protoc-gen-validate \
-       -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway@v1.16.0/third_party/googleapis \
-       -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.6.0 \
-       -I /${GOPATH}/google \
+CMD /local/bin/protoc \
+       -I ${GOPATH}/pkg/mod/github.com/envoyproxy/protoc-gen-validate@v0.6.7 \
+       -I ${GOPATH}/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.10.3 \
+       -I /${GOPATH}/google/googleapis \
        --grpc-gateway_out . \
        --grpc-gateway_opt logtostderr=true \
        --grpc-gateway_opt paths=source_relative \
